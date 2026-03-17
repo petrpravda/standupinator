@@ -1,0 +1,73 @@
+{
+  "name": "standupinator",
+  "displayName": "Standupinator",
+  "description": "AI-powered standup update generator – spend less time talking, more time coding",
+  "version": "0.1.0",
+  "publisher": "petrpravda",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "icon": "images/icon.png",
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "standupinator.generateStandup",
+        "title": "Generate Standup Update",
+        "category": "Standupinator"
+      }
+    ],
+    "configuration": {
+      "title": "Standupinator",
+      "properties": {
+        "standupinator.openaiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key used to generate standup updates. Can also be set via the OPENAI_API_KEY environment variable.",
+          "markdownDescription": "OpenAI API key used to generate standup updates. Can also be set via the `OPENAI_API_KEY` environment variable."
+        },
+        "standupinator.model": {
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "description": "OpenAI model to use for generating standup updates (e.g. gpt-4o, gpt-4o-mini, gpt-3.5-turbo)."
+        },
+        "standupinator.daysBack": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 30,
+          "description": "Number of days to look back when collecting git commits for the standup."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "lint": "eslint src --ext ts"
+  },
+  "dependencies": {
+    "openai": "^4.28.0"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.3"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.5",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vscode/test-electron": "^2.3.8",
+    "eslint": "^8.56.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.3.3"
+  }
+}
