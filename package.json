@@ -1,0 +1,25 @@
+{
+  "name": "standupinator",
+  "displayName": "Standupinator",
+  "description": "Daily standup summary from your git commits, powered by GitHub Copilot",
+  "version": "0.0.1",
+  "publisher": "petr-pravda",
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "standupinator.run",
+        "title": "Standupinator"
+      }
+    ]
+  },
+  "scripts": {
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "latest"
+  }
+}
