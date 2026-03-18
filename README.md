@@ -34,10 +34,19 @@ No API keys. No external services. The summary is generated locally through the 
 
 ## Installation
 
+### From the VS Code Marketplace (recommended)
+
+1. Open VS Code
+2. Go to **Extensions** (`Ctrl+Shift+X` / `Cmd+Shift+X` on macOS)
+3. Search for **"Standupinator"**
+4. Click **Install**
+
 ### From the `.vsix` file
 
+Download the latest `.vsix` from [GitHub Releases](https://github.com/petrpravda/standupinator/releases) and install:
+
 ```bash
-code --install-extension standupinator-0.0.1.vsix
+code --install-extension standupinator-0.0.3.vsix
 ```
 
 ### From source
@@ -47,7 +56,7 @@ git clone git@github.com:petrpravda/standupinator.git
 cd standupinator
 npm install
 npx vsce package --allow-missing-repository --no-dependencies
-code --install-extension standupinator-0.0.1.vsix
+code --install-extension standupinator-0.0.3.vsix
 ```
 
 ---
@@ -93,6 +102,12 @@ The workspace folder does not contain a `.git` directory. Open a git-initialized
 
 **"No workspace folder open"**
 You have a single file open instead of a folder. Use **File → Open Folder** first.
+
+---
+
+## Love Standupinator? ❤️
+
+Drop a star on the [GitHub repo](https://github.com/petrpravda/standupinator) ⭐ — it really makes my day! 💫 And if you're feeling extra generous, [leave a review on the Marketplace](https://marketplace.visualstudio.com/items?itemName=petrpravda.standupinator&ssr=false#review-details) 💕
 
 ---
 

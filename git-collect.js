@@ -43,9 +43,11 @@ function parseShortStat(line) {
 }
 
 function getCommits(repoPath) {
+  const userEmail = git(repoPath, ['config', 'user.email']);
   const raw = git(repoPath, [
     'log',
     '--since=24 hours ago',
+    `--author=${userEmail}`,
     '--shortstat',
     '--format=COMMIT:%H|%an|%ae|%ai|%s',
   ]);
