@@ -42,15 +42,21 @@ function parseShortStat(line) {
   };
 }
 
-function getCommits(repoPath) {
-  const userEmail = git(repoPath, ['config', 'user.email']);
-  const raw = git(repoPath, [
+function getCommits(repoPath, config) {
+  const userEmail = config.authorFilter === 'me'
+    ? git(repoPath, ['config', 'user.email'])
+    : null;
+
+  const args = [
     'log',
-    '--since=24 hours ago',
-    `--author=${userEmail}`,
+    `--since=${config.sinceDate}`,
     '--shortstat',
     '--format=COMMIT:%H|%an|%ae|%ai|%s',
-  ]);
+  ];
+
+  if (userEmail) args.push(`--author=${userEmail}`);
+
+  const raw = git(repoPath, args);
   if (!raw) return [];
 
   const commits = [];
@@ -79,25 +85,30 @@ function getCommits(repoPath) {
   return commits;
 }
 
-function enrichCommit(repoPath, commit) {
+function enrichCommit(repoPath, commit, config) {
+  const excludePatterns = [
+    ...EXCLUDE_PATTERNS,
+    ...config.extraExcludes.map(p => `:(exclude)${p}`),
+  ];
+
   const statLine = git(repoPath, [
     'diff', '--shortstat', `${commit.hash}^!`,
-    '--', ...EXCLUDE_PATTERNS,
+    '--', ...excludePatterns,
   ]);
 
   const stats = parseShortStat(statLine);
   commit.stats = stats;
   const totalLines = stats.insertions + stats.deletions;
 
-  if (totalLines < DIFF_LINE_THRESHOLD) {
+  if (totalLines < config.diffLineThreshold) {
     commit.diff = git(repoPath, [
       'diff', `${commit.hash}^!`,
-      '--', ...EXCLUDE_PATTERNS,
+      '--', ...excludePatterns,
     ], { trim: false });
   } else {
     const names = git(repoPath, [
       'diff', '--name-only', `${commit.hash}^!`,
-      '--', ...EXCLUDE_PATTERNS,
+      '--', ...excludePatterns,
     ]);
     commit.files = names
       ? names.split('\n').filter(Boolean).map(f => path.basename(f))
@@ -107,11 +118,11 @@ function enrichCommit(repoPath, commit) {
   return commit;
 }
 
-function buildMarkdown(repoPath, commits) {
-  const enriched = commits.map(c => enrichCommit(repoPath, c));
+function buildMarkdown(repoPath, commits, config) {
+  const enriched = commits.map(c => enrichCommit(repoPath, c, config));
   const lines = [];
 
-  lines.push(`# Git Activity — last 24 hours`);
+  lines.push(`# Git Activity — since ${config.sinceDate}`);
   lines.push(`**Repo:** ${repoPath}  `);
   lines.push(`**Generated:** ${new Date().toISOString()}  `);
   lines.push(`**Commits:** ${enriched.length}`);
@@ -147,21 +158,22 @@ function buildMarkdown(repoPath, commits) {
 /**
  * Main entry point.
  * @param {string} repoPath - Absolute path to the git repository.
+ * @param {object} config - Configuration object from config.js
  * @returns {{ markdown: string, commitCount: number } | { error: string }}
  */
-function collectGitSummary(repoPath) {
+function collectGitSummary(repoPath, config) {
   const repoRoot = git(repoPath, ['rev-parse', '--show-toplevel']);
   if (!repoRoot) {
     return { error: `"${repoPath}" is not a git repository.` };
   }
 
-  const commits = getCommits(repoRoot);
+  const commits = getCommits(repoRoot, config);
   if (commits.length === 0) {
     return { markdown: '', commitCount: 0 };
   }
 
   return {
-    markdown: buildMarkdown(repoRoot, commits),
+    markdown: buildMarkdown(repoRoot, commits, config),
     commitCount: commits.length,
   };
 }

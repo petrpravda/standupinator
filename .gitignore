@@ -2,5 +2,7 @@ node_modules/
 *.vsix
 .vscode/
 NOTES.txt
+src.frontend.all.txt
+.idea
 
 README.md

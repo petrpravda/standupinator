@@ -1,17 +1,18 @@
 const vscode = require('vscode');
 const { collectGitSummary } = require('./git-collect');
+const { readConfig } = require('./config');
 
 /**
  * Calls GitHub Copilot via the VS Code Language Model API with streaming.
  *
  * @param {string} prompt
+ * @param {object} config
  * @param {function(string): void} onToken
  * @param {vscode.CancellationToken} cancelToken
  * @returns {Promise<void>}
  */
-async function callCopilot(prompt, onToken, cancelToken) {
-  // Select the best available chat model (gpt-4o preferred, fallback to any copilot model)
-  let [model] = await vscode.lm.selectChatModels({ vendor: 'copilot', family: 'gpt-4o' });
+async function callCopilot(prompt, config, onToken, cancelToken) {
+  let [model] = await vscode.lm.selectChatModels({ vendor: 'copilot', family: config.model });
 
   if (!model) {
     const fallback = await vscode.lm.selectChatModels({ vendor: 'copilot' });
@@ -27,12 +28,7 @@ async function callCopilot(prompt, onToken, cancelToken) {
 
   const messages = [
     vscode.LanguageModelChatMessage.User(
-      'You are a concise engineering assistant. ' +
-      'Summarize the provided git activity in exactly 3 short sentences. ' +
-      'Do not mention counts of files, lines, or commits. ' +
-      'Do not use buzzwords. ' +
-      'Write plain, direct sentences describing what was worked on.\n\n' +
-      prompt
+      config.resolvedPrompt + '\n\n' + prompt
     ),
   ];
 
@@ -46,7 +42,7 @@ async function callCopilot(prompt, onToken, cancelToken) {
 /**
  * Creates and shows the result webview panel.
  */
-function createPanel() {
+function createPanel(config) {
   const panel = vscode.window.createWebviewPanel(
     'standupinator',
     'Standupinator',
@@ -125,7 +121,7 @@ function createPanel() {
 </head>
 <body>
   <h1>☕ Standupinator</h1>
-  <div class="subtitle">Last 24 hours · ${new Date().toLocaleString()}</div>
+  <div class="subtitle">Since ${new Date(config.sinceDate).toLocaleString()} · ${new Date().toLocaleString()}</div>
   ${bodyContent}
   <script>
     window.addEventListener('message', e => {
@@ -187,14 +183,17 @@ function activate(context) {
     }
     const repoPath = workspaceFolders[0].uri.fsPath;
 
-    // 2. Open panel immediately
-    const { showStreaming, append, markDone, setError } = createPanel();
+    // 2. Read config (includes working-days since-date calculation)
+    const config = readConfig();
+
+    // 3. Open panel immediately
+    const { showStreaming, append, markDone, setError } = createPanel(config);
     showStreaming();
 
-    // 3. Collect git data (synchronous, fast)
+    // 4. Collect git data (synchronous, fast)
     let gitResult;
     try {
-      gitResult = collectGitSummary(repoPath);
+      gitResult = collectGitSummary(repoPath, config);
     } catch (err) {
       setError(`Git collection failed: ${err.message}`);
       return;
@@ -206,16 +205,16 @@ function activate(context) {
     }
 
     if (gitResult.commitCount === 0) {
-      setError('No commits found in the last 24 hours.');
+      setError(`No commits found since ${new Date(config.sinceDate).toLocaleString()}.`);
       return;
     }
 
-    // 4. Call Copilot with streaming
+    // 5. Call Copilot with streaming
     const cancelSource = new vscode.CancellationTokenSource();
     context.subscriptions.push(cancelSource);
 
     try {
-      await callCopilot(gitResult.markdown, (token) => append(token), cancelSource.token);
+      await callCopilot(gitResult.markdown, config, (token) => append(token), cancelSource.token);
       markDone();
     } catch (err) {
       if (err.code === vscode.LanguageModelError.NotFound?.name) {

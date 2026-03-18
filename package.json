@@ -2,7 +2,7 @@
   "name": "standupinator",
   "displayName": "Standupinator – AI Standup Generator",
   "description": "Daily standup summary from your git commits, powered by GitHub Copilot",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "publisher": "petrpravda",
   "repository": {
     "type": "git",
@@ -20,7 +20,65 @@
         "command": "standupinator.run",
         "title": "Standupinator"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Standupinator",
+      "properties": {
+        "standupinator.hoursBack": {
+          "type": "number",
+          "default": 8,
+          "minimum": 1,
+          "maximum": 168,
+          "description": "How many working hours to look back when collecting commits."
+        },
+        "standupinator.authorFilter": {
+          "type": "string",
+          "enum": ["me", "all"],
+          "default": "me",
+          "description": "Summarize only your own commits ('me') or everyone's ('all')."
+        },
+        "standupinator.diffLineThreshold": {
+          "type": "number",
+          "default": 100,
+          "minimum": 0,
+          "description": "Commits with more changed lines than this show filenames only. Set to 0 to always show filenames only."
+        },
+        "standupinator.excludePatterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Additional glob patterns to exclude from diffs, e.g. [\"migrations/*\", \"*.generated.ts\"]."
+        },
+        "standupinator.model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "description": "Copilot model family to request, e.g. gpt-4o, gpt-4o-mini, claude-sonnet."
+        },
+        "standupinator.language": {
+          "type": "string",
+          "default": "English",
+          "description": "Language for the generated summary, e.g. English, Czech, German."
+        },
+        "standupinator.sentenceCount": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Number of sentences in the generated summary."
+        },
+        "standupinator.workingDays": {
+          "type": "string",
+          "default": "MO,TU,WE,TH,FR",
+          "description": "Comma-separated working days used when calculating the time window. Valid tokens: MO TU WE TH FR SA SU."
+        },
+        "standupinator.promptTemplate": {
+          "type": "string",
+          "default": "",
+          "editPresentation": "multilineText",
+          "description": "Custom system prompt sent to the LLM. Leave empty to use the built-in default. Supports placeholders: {{sentenceCount}} and {{language}}.\n\nDefault prompt:\nYou are a concise engineering assistant. Summarize the provided git activity in exactly {{sentenceCount}} short sentence(s). Do not mention counts of files, lines, or commits. Do not use buzzwords. Write plain, direct sentences describing what was worked on. Respond in {{language}}."
+        }
+      }
+    }
   },
   "scripts": {
     "package": "vsce package"
