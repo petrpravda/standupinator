@@ -1,10 +1,16 @@
 {
   "name": "standupinator",
-  "displayName": "Standupinator",
+  "displayName": "Standupinator – AI Standup Generator",
   "description": "Daily standup summary from your git commits, powered by GitHub Copilot",
-  "version": "0.0.1",
-  "publisher": "petr-pravda",
+  "version": "0.0.3",
+  "publisher": "petrpravda",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/petrpravda/standupinator"
+  },
+  "license": "MIT",
   "engines": { "vscode": "^1.90.0" },
+  "keywords": ["standup", "scrum", "agile", "daily standup"],
   "categories": ["Other"],
   "activationEvents": [],
   "main": "./extension.js",
